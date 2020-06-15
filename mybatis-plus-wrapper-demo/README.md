@@ -1,0 +1,1 @@
+mybatis plus的wrapper使用例子，在SpringBootTemplateApplicationTests文件里

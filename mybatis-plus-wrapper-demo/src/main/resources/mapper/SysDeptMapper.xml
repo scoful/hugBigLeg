@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.scoful.mapper.SysDeptMapper">
+    <resultMap id="BaseResultMap" type="com.scoful.entity.SysDept">
+        <!--@mbg.generated-->
+        <!--@Table sys_dept-->
+        <id column="id" jdbcType="INTEGER" property="id"/>
+        <result column="pid" jdbcType="INTEGER" property="pid"/>
+        <result column="title" jdbcType="VARCHAR" property="title"/>
+        <result column="open" jdbcType="INTEGER" property="open"/>
+        <result column="address" jdbcType="VARCHAR" property="address"/>
+        <result column="createtime" jdbcType="TIMESTAMP" property="createtime"/>
+        <result column="remark" jdbcType="VARCHAR" property="remark"/>
+    </resultMap>
+    <sql id="Base_Column_List">
+        <!--@mbg.generated-->
+        id, pid, title, `open`, address, createtime, remark
+    </sql>
+    <select id="selectPageVo" resultMap="BaseResultMap">
+        select id,
+               title
+        from (
+                 select t1.id,
+                        t1.title,
+                        if(find_in_set(pid, @pids) > 0,
+                           @pids := concat(@pids, ',', id),
+                           0) as ischild
+                 from (
+                          select id,
+                                 pid,
+                                 title
+                          from sys_dept t
+                          order by pid,
+                                   id) t1,
+                      (
+                          select @pids := #{state}) t2) t3
+        where ischild != 0
+    </select>
+</mapper>
