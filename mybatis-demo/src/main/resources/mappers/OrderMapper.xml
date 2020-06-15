@@ -1,0 +1,70 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<!-- mapper:根标签，namespace：命名空间，随便写，一般保证命名空间唯一 ，为了使用接口动态代理，这里必须是接口的全路径名-->
+<mapper namespace="com.scoful.mybatis.dao.OrderMapper">
+
+    <resultMap id="OrderUserResultMap" type="com.scoful.mybatis.pojo.Order" autoMapping="true">
+        <id column="id" property="id"/>
+        <!--collection:定义子对象集合映射-->
+        <!--association:完成子对象的映射-->
+        <!--property:子对象在父对象中的属性名-->
+        <!--javaType:子对象的java类型-->
+        <!--autoMapping:完成子对象的自动映射，若开启驼峰，则按驼峰匹配-->
+        <association property="user" javaType="com.scoful.mybatis.pojo.User" autoMapping="true">
+            <id column="user_id" property="id"/>
+        </association>
+        <collection property="orderDetails" javaType="list" ofType="com.scoful.mybatis.pojo.OrderDetail"
+                    autoMapping="true">
+            <id column="id" property="id"/>
+        </collection>
+    </resultMap>
+
+    <resultMap id="OrderUserDetailResultMap" type="OrderUserDetail">
+        <result column="id" property="id"/>
+        <result column="name" property="name"/>
+        <result column="age" property="age"/>
+        <result column="sex" property="sex"/>
+        <result column="birthday" property="birthday"/>
+        <result column="order_number" property="orderNumber"/>
+        <result column="total_price" property="totalPrice"/>
+        <result column="status" property="status"/>
+        <result column="itemName" property="itemName"/>
+        <result column="itemPrice" property="itemPrice"/>
+        <result column="itemDetail" property="itemDetail"/>
+    </resultMap>
+
+    <select id="queryOrderWithUserByOrderNumber" resultMap="OrderUserResultMap">
+        select *
+        from tb_order o
+                 left join tb_user u on o.user_id = u.id
+        where o.order_number = #{number}
+    </select>
+
+    <select id="queryOrderWithUserAndDetailByOrderNumber" resultMap="OrderUserResultMap">
+        select *
+        from tb_order o
+                 left join tb_user u on o.user_id = u.id
+                 left join tb_orderdetail od on o.id = od.order_id
+        where o.order_number = #{number}
+    </select>
+    <select id="queryOrderWithUserAndDetailItemByOrderNumber" resultMap="OrderUserDetailResultMap">
+        select o.id,
+               u.name,
+               u.age,
+               u.sex,
+               u.birthday,
+               o.order_number,
+               od.total_price,
+               od.status,
+               it.itemName,
+               it.itemPrice,
+               it.itemDetail
+        from tb_order o
+                 left join tb_user u on u.id = o.user_id
+                 left join tb_orderdetail od on od.order_id = o.id
+                 left join tb_item it on it.id = od.item_id
+        where o.order_number = #{number}
+    </select>
+</mapper>
