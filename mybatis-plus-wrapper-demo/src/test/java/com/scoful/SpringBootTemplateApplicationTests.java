@@ -8,16 +8,13 @@ import com.baomidou.mybatisplus.core.toolkit.StringUtils;
 import com.baomidou.mybatisplus.extension.conditions.query.LambdaQueryChainWrapper;
 import com.scoful.entity.User;
 import com.scoful.mapper.UserMapper;
+import com.scoful.service.UserService;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
-import static org.junit.jupiter.api.Assertions.assertEquals;
+import java.util.*;
+import java.util.stream.Collectors;
 
 /**
  * junit5的写法
@@ -29,10 +26,13 @@ class SpringBootTemplateApplicationTests {
     @Autowired
     private UserMapper userMapper;
 
+    @Autowired
+    private UserService userService;
+
     @Test
     void select() {
         List<User> userList = userMapper.selectList(null);
-        assertEquals(7, userList.size());
+//        assertEquals(7, userList.size());
         userList.forEach(System.out::println);
     }
 
@@ -49,7 +49,12 @@ class SpringBootTemplateApplicationTests {
 
     @Test
     void selectById() {
-        User user = userMapper.selectById(1087982257332887553L);
+        User user = userMapper.selectById(1087982257332887554L);
+        if (Optional.ofNullable(user)
+                    .isPresent()) {
+            System.out.println("存在");
+            System.out.println(user.getUserName());
+        }
         System.out.println(user);
     }
 
@@ -380,4 +385,54 @@ class SpringBootTemplateApplicationTests {
         int i = userMapper.deleteById(1270258167518883841L);
         System.out.println(i);
     }
+
+
+    @Test
+    void insertBatch() {
+        long begin = System.currentTimeMillis();
+        ArrayList<User> users = new ArrayList<>();
+        for (int i = 0; i <= 4999; i++) {
+            User user = new User();
+            user.setUserName("台湾_" + i);
+            user.setAge(30);
+            user.setManagerId(1087982257332887553L);
+            users.add(user);
+        }
+        userService.saveBatch(users);
+        long end = System.currentTimeMillis();
+        System.out.println(end - begin);
+
+    }
+
+
+    @Test
+    void deleteBatch() {
+        long begin = System.currentTimeMillis();
+        LambdaQueryWrapper<User> userLambdaQueryWrapper = new LambdaQueryWrapper<>();
+        userLambdaQueryWrapper.like(User::getUserName, "台湾");
+        List<User> users = userMapper.selectList(userLambdaQueryWrapper);
+        List<Long> ids = users.stream()
+                              .map(User::getId)
+                              .collect(Collectors.toList());
+
+        boolean i = userService.removeByIds(ids);
+        System.out.println(i);
+        long end = System.currentTimeMillis();
+        System.out.println(end - begin);
+    }
+
+    @Test
+    void updateBatch() {
+        long begin = System.currentTimeMillis();
+        LambdaQueryWrapper<User> userLambdaQueryWrapper = new LambdaQueryWrapper<>();
+        userLambdaQueryWrapper.like(User::getUserName, "台湾");
+        List<User> users = userMapper.selectList(userLambdaQueryWrapper);
+        for (User user : users) {
+            user.setAge(1);
+        }
+        boolean b = userService.updateBatchById(users);
+        long end = System.currentTimeMillis();
+        System.out.println(end - begin);
+    }
+
 }
